@@ -1,0 +1,14 @@
+{
+  "name": "ABMIL Pose — Planning et Pointage",
+  "short_name": "ABMIL Pose",
+  "description": "Application interne de gestion des chantiers et du pointage",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#122035",
+  "lang": "fr-FR",
+  "icons": [
+    {"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

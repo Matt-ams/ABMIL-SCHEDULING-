@@ -1,0 +1,33 @@
+{
+  "name": "abmil-pose-workforce",
+  "version": "1.0.0-beta.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs",
+    "test:logic": "node --experimental-strip-types --test tests/*.test.mjs",
+    "check": "npm run typecheck && npm run test:logic && npm run build"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "next": "16.4.6",
+    "pg": "^8.16.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "type": "module",
+  "description": "ABMIL Pose — outil de planning BTP et pointages pour 5 à 10 salariés"
+}

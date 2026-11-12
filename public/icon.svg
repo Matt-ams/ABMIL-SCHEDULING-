@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ABMIL Pose">
+  <rect width="512" height="512" rx="102" fill="#122035" />
+  <path d="M112 368 218 139q14-30 38-30t38 30l106 229h-71l-22-51H204l-22 51zm119-113h50l-25-61z" fill="#ffffff" />
+  <rect x="105" y="400" width="302" height="14" rx="7" fill="#41b780" />
+</svg>
