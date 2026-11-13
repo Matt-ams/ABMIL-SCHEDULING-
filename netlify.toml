@@ -4,8 +4,14 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 # Use Netlify UI to set DATABASE_URL, APP_SESSION_SECRET, APP_SETUP_KEY.
 # The project also needs public visitor access when ready.
 
 # Set DATABASE_URL, APP_SESSION_SECRET, APP_SETUP_KEY in Netlify UI
 # with Functions/Builds scopes. Never place credentials in this file.
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
