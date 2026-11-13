@@ -1,5 +1,8 @@
+[fix/netlify-nextjs-runtime f728ad2] fix(netlify): set Next.js build output directory
+ 1 file changed, 1 insertion(+)
 [build]
   command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
