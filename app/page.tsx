@@ -90,7 +90,7 @@ export default function Page() {
     try{
       const res=await fetch('/api',{cache:'no-store'});
       if(!res.ok){setConnection('offline');setAuth(prev=>prev||{configured:false,error:'Service temporairement inaccessible.'});return;}
-      const payload=await res.json();setConnection('online');setAuth(payload);
+      const payload=await res.json() as AuthState;setConnection('online');setAuth(payload);
     }catch{setConnection('offline');setAuth(prev=>prev||{configured:false,error:'Service temporairement inaccessible.'});}
   }
   const data=demo?demoData:auth?.data;
@@ -131,8 +131,8 @@ export default function Page() {
       const isPunch=['clockIn','pauseStart','pauseEnd','clockOut'].includes(op);
       if(isPunch && pendingPunch.current?.op!==op)pendingPunch.current={op,requestId:crypto.randomUUID()};
       const response=await fetch('/api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op,...payload,...(isPunch?{requestId:pendingPunch.current!.requestId}:{})})});
-      const output=await response.json();
-      if(!response.ok){if(isPunch&&response.status===409)pendingPunch.current=null;throw new Error(output.error||'Une erreur est survenue.');}
+      const output=await response.json() as Record<string,unknown>;
+      if(!response.ok){if(isPunch&&response.status===409)pendingPunch.current=null;throw new Error(typeof output.error==='string'?output.error:'Une erreur est survenue.');}
       if(isPunch)pendingPunch.current=null;
       if(onOk)onOk(output);
       await refresh();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { PoolClient } from 'pg';
-import { database, transaction, one, ApiError, isConfigured } from '@/lib/db';
+import { database, transaction, one, ApiError, isConfigured, withDatabase } from '@/lib/db';
 import { newId, randomToken, sha256, employeeCode, passwordHash, checkPassword, cookieOptions, makeSession, readSession, requireActor, checkOrigin, ParisDate } from '@/lib/security';
 import { validDate, validTime, asMinutes, sessionMinutes } from '@/lib/time';
 import { transition, type ClockAction, type ClockStatus } from '@/lib/clock';
@@ -71,7 +71,7 @@ async function getState(db:PoolClient|ReturnType<typeof database>,actor:{role:'a
     ...(admin?{audit:audits.rows.map(r=>({id:r.id,at:iso(r.created_at),actor:r.actor,action:r.action,details:r.details}))}:{})
   };
 }
-export async function GET(request:NextRequest) {
+export const GET=withDatabase(async function GET(request:NextRequest) {
   try {
     if (!isConfigured()) return json({configured:false,error:'Configurez PostgreSQL et APP_SESSION_SECRET avant toute utilisation réelle.'});
     const db=database();
@@ -84,7 +84,7 @@ export async function GET(request:NextRequest) {
     const data=await getState(db,actor);
     return json({configured:true,authenticated:true,role:actor.role,me,data});
   } catch(e) {return handle(e);}
-}
+});
 
 async function beginPunch(db:PoolClient,actor:{id:string},op:string,b:Record<string,unknown>) {
   // Row lock serializes all punch commands from a worker, across serverless instances.
@@ -132,7 +132,7 @@ async function beginPunch(db:PoolClient,actor:{id:string},op:string,b:Record<str
   return response;
 }
 
-export async function POST(request:NextRequest) {
+export const POST=withDatabase(async function POST(request:NextRequest) {
   try {
     checkOrigin(request);
     if(Number(request.headers.get('content-length')||0)>16384) throw new ApiError('Requête trop volumineuse.',413);
@@ -359,4 +359,4 @@ export async function POST(request:NextRequest) {
     }
     throw new ApiError('Action inconnue.',404);
   } catch(e) {return handle(e);}
-}
+});

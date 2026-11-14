@@ -10,3 +10,6 @@ node_modules
 *.dump
 *.sql.gz
 backups/
+/dist/
+.vinext/
+.cloudflare/

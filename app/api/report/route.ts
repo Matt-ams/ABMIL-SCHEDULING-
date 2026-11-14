@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { database, isConfigured } from '@/lib/db';
+import { database, isConfigured, withDatabase } from '@/lib/db';
 import { requireActor } from '@/lib/security';
 import { sessionMinutes, validDate } from '@/lib/time';
 import { reportBounds } from '@/lib/period';
@@ -9,7 +9,7 @@ import { finalTimesheetRows } from '@/lib/final-timesheet';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const fmt = (d:Date) => new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
-export async function GET(req:NextRequest){
+export const GET=withDatabase(async function GET(req:NextRequest){
   try{
     if(!isConfigured())return NextResponse.json({error:'Service non configuré.'},{status:503});
     const db=database();await requireActor(db,req,true);
@@ -55,4 +55,4 @@ export async function GET(req:NextRequest){
     const filename='ABMIL-POSE-heures-'+period+'-'+start+'-'+(client==='Tous'?'tous':client.replace(/[^a-z0-9-]/gi,'_'))+'.csv';
     return new NextResponse(csv,{status:200,headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="${filename}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
   }catch(e){console.error('Report generation failed',e instanceof Error?e.message:'unknown');return NextResponse.json({error:'Rapport indisponible. Vérifiez votre session et réessayez.'},{status:503});}
-}
+});
