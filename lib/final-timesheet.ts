@@ -30,6 +30,40 @@ function frDate(day: string): string {
   return `${date}/${month}/${year}`;
 }
 
+function dailyRows(records: FinalTimesheetRecord[], start: string) {
+  const groups = new Map<string, { employee: string; site: string; daily: number[] }>();
+  for (const record of records) {
+    const key = `${record.employee}\u0000${record.site}`;
+    const item = groups.get(key) || { employee: record.employee, site: record.site, daily: Array(7).fill(0) };
+    const date = new Date(`${record.day}T12:00:00Z`);
+    item.daily[(date.getUTCDay() + 6) % 7] += record.netMinutes;
+    groups.set(key, item);
+  }
+  const detail = Array.from(groups.values()).sort((a, b) => a.employee.localeCompare(b.employee, 'fr') || a.site.localeCompare(b.site, 'fr'));
+  return detail.map(item => [item.employee, item.site, String(isoWeek(start)), frDate(start), frDate(weekEnd(start)), ...item.daily.map(csvHours), csvHours(item.daily.reduce((sum, value) => sum + value, 0))]);
+}
+
+/** Weekly accountant-facing sheet, modeled on ABMIL's paper timesheet. */
+export function weeklyFinalTimesheetRows(records: FinalTimesheetRecord[], date: string, client: string) {
+  const start = weekStart(date);
+  const end = weekEnd(start);
+  const rows: Array<Array<string | number>> = [
+    ['ABMIL POSE — FEUILLE FINALE DE POINTAGE'],
+    ['Période', `Semaine n° ${isoWeek(start)}`, 'Du', frDate(start), 'Au', frDate(end), 'Client', client],
+    ['Pointages terminés et validés par la direction uniquement. Heures nettes au format décimal français.'],
+    ['Salarié', 'Chantier', 'Semaine N°', 'Du', 'Au', ...weekdayNames, 'Total semaine'],
+    ...(dailyRows(records, start).length
+      ? dailyRows(records, start)
+      : [['Aucun pointage validé sur la période', '', String(isoWeek(start)), frDate(start), frDate(end), ...Array(7).fill(''), '']]),
+    [],
+    ['TOTAL HEURES VALIDÉES', ...Array(11).fill(''), csvHours(records.reduce((sum, record) => sum + record.netMinutes, 0))],
+    [],
+    ['Remarques'],
+    ['Visa salarié : ______________________________', '', 'Visa direction : ______________________________'],
+  ];
+  return csvRows(rows);
+}
+
 /** Monthly printable/accountant-facing layout. Input records must already be approved. */
 export function finalTimesheetRows(records: FinalTimesheetRecord[], month: string, client: string) {
   const groups = new Map<string, { employee: string; site: string; start: string; daily: number[] }>();
@@ -50,7 +84,10 @@ export function finalTimesheetRows(records: FinalTimesheetRecord[], month: strin
     ['Mois', `${monthNumber}/${year}`, 'Client', client, 'Période couverte', `01/${monthNumber}/${year} - ${lastDay}/${monthNumber}/${year}`],
     ['Pointages terminés et validés par la direction uniquement. Heures nettes au format décimal français.'],
     ['Salarié', 'Chantier', 'Semaine N°', 'Du', 'Au', ...weekdayNames, 'Total semaine'],
-    ...detail.map(item => [item.employee, item.site, String(isoWeek(item.start)), frDate(item.start), frDate(weekEnd(item.start)), ...item.daily.map(csvHours), csvHours(item.daily.reduce((sum, value) => sum + value, 0))]),
+    ...detail.map(item => {
+      const recordsForWeek = records.filter(r => r.employee === item.employee && r.site === item.site && weekStart(r.day) === item.start);
+      return dailyRows(recordsForWeek, item.start)[0];
+    }),
     [],
     ['RÉCAPITULATIF MENSUEL PAR SALARIÉ'],
     ['Salarié', 'Jours pointés', 'Heures nettes'],
