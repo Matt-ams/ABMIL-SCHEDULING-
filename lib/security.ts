@@ -1,7 +1,7 @@
 import { createHmac, createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { NextRequest } from 'next/server';
 import type { PoolClient, Pool } from 'pg';
-import { one, ApiError } from './db';
+import { one, ApiError } from '@/lib/db';
 import { currentWorkerSession } from './auth-rules';
 
 export function newId() { return randomUUID(); }

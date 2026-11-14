@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reportBounds } from '../lib/period.ts';
 import { csvCell, csvRows, csvHours } from '../lib/csv.ts';
-import { finalTimesheetRows } from '../lib/final-timesheet.ts';
+import { finalTimesheetRows, weeklyFinalTimesheetRows } from '../lib/final-timesheet.ts';
 import { currentWorkerSession } from '../lib/auth-rules.ts';
 
 test('relevé de semaine du lundi au dimanche (même aux changements d’année)', () => {
@@ -49,4 +49,17 @@ test('feuille finale mensuelle regroupe par salarié, chantier et semaine avec u
   assert.ok(csv.includes('"Salarié A";"Chantier Y";"24";"08/06/2026"'));
   assert.ok(csv.includes('"TOTAL GÉNÉRAL";"";"23,25"'));
   assert.ok(csv.includes('"01/06/2026 - 30/06/2026"'));
+});
+
+test('feuille finale hebdomadaire présente la grille des jours, le total et les visas', () => {
+  const csv = weeklyFinalTimesheetRows([
+    {employee:'Salarié A',site:'Chantier X',day:'2026-06-01',netMinutes:465},
+    {employee:'Salarié A',site:'Chantier X',day:'2026-06-02',netMinutes:480},
+  ],'2026-06-03','Tous');
+  assert.ok(csv.startsWith('\uFEFF'));
+  assert.ok(csv.includes('"Période";"Semaine n° 23";"Du";"01/06/2026";"Au";"07/06/2026"'));
+  assert.ok(csv.includes('"Salarié";"Chantier";"Semaine N°";"Du";"Au";"Lundi";"Mardi";"Mercredi";"Jeudi";"Vendredi";"Samedi";"Dimanche";"Total semaine"'));
+  assert.ok(csv.includes('"Salarié A";"Chantier X";"23";"01/06/2026";"07/06/2026";"7,75";"8,00"'));
+  assert.ok(csv.includes('"TOTAL HEURES VALIDÉES"'));
+  assert.ok(csv.includes('"Visa salarié :'));
 });

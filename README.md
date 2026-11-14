@@ -11,7 +11,7 @@
 - Planning en lignes par salarié **ou** par chantier, couleurs par chantier, horaires / pauses prévus propres à chaque chantier.
 - Création des salariés (code individuel), invitation à usage unique (7 jours), activation PIN personnel (6 chiffres), blocage de connexion après tentatives échouées, réinitialisation PIN invalidant **toutes** les anciennes sessions salarié.
 - Contrôle et validation de chaque journée, correction motivée y compris **clôture d'une sortie oubliée**, audit des modifications.
-- Journées, semaines, mois cumulés; CSV à décimales françaises **des seules journées validées**, par client (Fontanel inclus comme filtre). La feuille mensuelle finale reprend le modèle papier hebdomadaire : salarié, chantier, numéro de semaine, heures du lundi au dimanche, total semaine, récapitulatif mensuel et emplacements de visa. Format générique à confirmer avec le comptable.
+- Journées, semaines, mois cumulés; CSV à décimales françaises **des seules journées validées**, par client (Fontanel inclus comme filtre). Les feuilles finales hebdomadaire et mensuelle reprennent la grille papier par semaine et jour, avec salarié, chantier, total hebdomadaire, récapitulatif mensuel et emplacements de visa. Format générique à confirmer avec le comptable.
 - Absences soumises puis validées/refusées.
 
 ### Salarié

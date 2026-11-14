@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { database, isConfigured } from '@/lib/db';
+import { database, isConfigured, withDatabase } from '@/lib/db';
 import { requireActor } from '@/lib/security';
 import { sessionMinutes, validDate } from '@/lib/time';
 import { reportBounds } from '@/lib/period';
 import { csvRows, csvHours } from '@/lib/csv';
-import { finalTimesheetRows } from '@/lib/final-timesheet';
+import { finalTimesheetRows, weeklyFinalTimesheetRows } from '@/lib/final-timesheet';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const fmt = (d:Date) => new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
-export async function GET(req:NextRequest){
+export const GET=withDatabase(async function GET(req:NextRequest){
   try{
     if(!isConfigured())return NextResponse.json({error:'Service non configuré.'},{status:503});
     const db=database();await requireActor(db,req,true);
@@ -30,9 +30,11 @@ export async function GET(req:NextRequest){
     const raw=rows.filter(r=>client==='Tous'||r.client_name.toLowerCase()===client.toLowerCase());
     const records=raw.map(r=>({...r,...sessionMinutes(r.start_at,r.end_at,(by.get(r.id)||[]),r.corrected_break_minutes)}));
     if(url.get('format')==='final'){
-      if(period!=='month')return NextResponse.json({error:'La feuille finale est disponible pour une période mensuelle.'},{status:400});
-      const csv=finalTimesheetRows(records.map(r=>({employee:r.employee_name,site:r.site_name,day:r.day,netMinutes:r.netMinutes})),date.slice(0,7),client);
-      const filename='ABMIL-POSE-feuille-finale-'+date.slice(0,7)+'-'+(client==='Tous'?'tous':client.replace(/[^a-z0-9-]/gi,'_'))+'.csv';
+      const timesheetRecords=records.map(r=>({employee:r.employee_name,site:r.site_name,day:r.day,netMinutes:r.netMinutes}));
+      const csv=period==='month'
+        ? finalTimesheetRows(timesheetRecords,date.slice(0,7),client)
+        : weeklyFinalTimesheetRows(timesheetRecords,date,client);
+      const filename='ABMIL-POSE-feuille-finale-'+period+'-'+date.slice(0,period==='month'?7:10)+'-'+(client==='Tous'?'tous':client.replace(/[^a-z0-9-]/gi,'_'))+'.csv';
       return new NextResponse(csv,{status:200,headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="${filename}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
     }
     const summary=new Map<string,{employee:string;site:string;client:string;days:Set<string>;mins:number}>();
@@ -55,4 +57,4 @@ export async function GET(req:NextRequest){
     const filename='ABMIL-POSE-heures-'+period+'-'+start+'-'+(client==='Tous'?'tous':client.replace(/[^a-z0-9-]/gi,'_'))+'.csv';
     return new NextResponse(csv,{status:200,headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="${filename}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
   }catch(e){console.error('Report generation failed',e instanceof Error?e.message:'unknown');return NextResponse.json({error:'Rapport indisponible. Vérifiez votre session et réessayez.'},{status:503});}
-}
+});

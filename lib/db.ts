@@ -5,6 +5,8 @@ const globals = globalThis as typeof globalThis & { __abmilPool?: Pool };
 export function isConfigured() {
   return !!process.env.DATABASE_URL && !!process.env.APP_SESSION_SECRET && process.env.APP_SESSION_SECRET.length >= 32;
 }
+/** Node hosting already scopes the shared pool to a serverless instance. */
+export function withDatabase<Handler extends (...args: any[]) => Promise<any>>(handler: Handler): Handler { return handler; }
 export function database(): Pool {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_NOT_CONFIGURED');
   if (!globals.__abmilPool) {
